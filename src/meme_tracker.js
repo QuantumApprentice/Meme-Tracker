@@ -2,7 +2,7 @@
 
 async function load_meme_list()
 {
-    return fetch('./Meme_Tracker_list.json').then(res=>{
+    return fetch('./src/Meme_Tracker_list.json').then(res=>{
         if (!res.ok) {
             throw new Error("ERROR: Unable to load Meme_Tracker_list.json");
         }
