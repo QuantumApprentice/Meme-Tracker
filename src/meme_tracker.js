@@ -15,13 +15,9 @@ async function display_memes()
     let memeList = await load_meme_list();
     console.log(memeList);
 
-    console.log(memeList[0].filename);
-
     let basename = memeList[0].filename;
-    let gifname = `${basename}.gif`;
-
     let img = document.createElement("img");
-    img.src = `./assets/${gifname}`;
+    img.src = `./assets/${basename}.gif`;
 
     let root = document.getElementById("root");
     root.appendChild(img);
