@@ -16,8 +16,14 @@ async function display_memes()
     console.log(memeList);
 
     let basename = memeList[0].filename;
+    let command  = memeList[0].memename;
     let img = document.createElement("img");
     img.src = `./assets/${basename}.gif`;
+    img.loading = "lazy";
+    // img.onclick(navigator.clipboard.writeText(`!${command}`))
+    img.addEventListener("click", (e)=>{
+        navigator.clipboard.writeText(`!${command}`);
+    });
 
     let root = document.getElementById("root");
     root.appendChild(img);
