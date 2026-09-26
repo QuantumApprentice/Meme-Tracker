@@ -15,18 +15,33 @@ async function display_memes()
     let memeList = await load_meme_list();
     console.log(memeList);
 
+    let root     = document.getElementById("root");
     let basename = memeList[0].filename;
     let command  = memeList[0].memename;
-    let img = document.createElement("img");
-    img.src = `./assets/${basename}.gif`;
-    img.loading = "lazy";
-    // img.onclick(navigator.clipboard.writeText(`!${command}`))
-    img.addEventListener("click", (e)=>{
+
+    // let img = document.createElement("img");
+    // img.src = `./assets/${basename}.gif`;
+    // img.loading = "lazy";
+    // img.addEventListener("click", (e)=>{
+    //     navigator.clipboard.writeText(`!${command}`);
+    // });
+    // root.appendChild(img);
+
+    let vid = document.createElement("video");
+    vid.src = `./assets/${basename}.webm `;
+    vid.loading = "lazy";
+    // vid.autoplay = true;
+    vid.setAttribute("muted","");
+    vid.setAttribute("controls","");
+    vid.setAttribute("autoplay", "");
+    vid.onHover
+    vid.addEventListener("click", (e)=>{
         navigator.clipboard.writeText(`!${command}`);
     });
-
-    let root = document.getElementById("root");
-    root.appendChild(img);
+    // vid.addEventListener("mouseover", (e)=>{
+    //     vid.setAttribute("autoplay","");
+    // });
+    root.appendChild(vid);
 
 
     // root.innerHTML = `<div id="meme1">
