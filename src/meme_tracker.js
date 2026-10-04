@@ -1,3 +1,5 @@
+// https://quantumapprentice.github.io/Meme-Tracker/
+// github.com/QuantumApprentice/Meme-Tracker
 "use strict";
 
 async function load_meme_list()
@@ -16,16 +18,8 @@ async function display_memes()
     let memeList = await load_meme_list();
     // console.log(memeList);
 
-    let root   = document.getElementById("root");
-
-    let button = document.createElement("button");
-    button.innerText = img_type ? "gif" : "webm";
-    button.onclick = ()=>{
-        img_type = !img_type;
-        root.innerHTML = "";
-        display_memes();
-    };
-    root.appendChild(button);
+    let root   = document.getElementById("base");
+    buttons(root);
 
     for (let i = 0; i < 18; i++) {
         let basename = memeList[i].filename;
@@ -68,25 +62,49 @@ function append_meme_image(basename, command, root)
 function append_meme_video(basename, command, root)
 {
     let vid = document.createElement("video");
-    // vid.className = 'meme_vid';
     vid.src = `./assets/${basename}.webm `;
     vid.loading = "lazy";
     vid.loop = true;
     vid.muted = true;
+    vid.play();
     vid.addEventListener("click", (e)=>{
         navigator.clipboard.writeText(`!${command}`);
         e.currentTarget.muted = !e.currentTarget.muted;
     });
     vid.addEventListener("mouseenter", (e)=>{
         e.currentTarget.play();
+        // e.currentTarget.muted = !e.currentTarget.muted;
+        // e.currentTarget.muted = false;
     });
     vid.addEventListener("mouseout", (e)=>{
-        e.currentTarget.pause();
+        // e.currentTarget.pause();
         e.currentTarget.muted = true;
     });
-    root.appendChild(vid);
+
+    let div = document.createElement("div");
+    div.className = 'meme';
+    div.appendChild(vid);
+    root.appendChild(div);
 }
 
+function buttons(root)
+{
+    let button = document.createElement("button");
+    button.innerText = img_type ? "gif" : "webm";
+    button.onclick = ()=>{
+        img_type = !img_type;
+        root.innerHTML = "";
+        display_memes();
+    };
+    root.appendChild(button);
+    let github = document.createElement("button");
+    github.innerText = "Repo";
+    github.onclick = ()=>{
+        window.open("https://github.com/QuantumApprentice/Meme-Tracker");
+    }
+    github.style="top: 40px"
+    root.appendChild(github)
+}
 
 
 display_memes();
