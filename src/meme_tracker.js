@@ -51,7 +51,6 @@ function list_meme(basename, command, created)
     add_command_button(div, command );
 
     base.appendChild(div);
-
 }
 
 
@@ -63,11 +62,12 @@ function list_meme(basename, command, created)
 // returns the div with the image appended
 function create_meme_video(basename, command)
 {
-    let vid = document.createElement("video");
-    vid.src = `./memes/${basename}.webm `;
+    let vid     = document.createElement("video");
+    vid.src     = `./memes/${basename}.webm `;
     vid.loading = "lazy";
-    vid.loop = true;
-    vid.muted = true;
+    vid.loop    = true;
+    vid.muted   = true;
+    vid.volume  = 0.3;
     vid.play();
     vid.addEventListener("click", (e)=>{
         navigator.clipboard.writeText(`!${command}`);
@@ -137,7 +137,8 @@ function add_username(div, user)
 function add_basename(div, basename)
 {
     let basename_txt = document.createElement("div");
-    basename_txt = `Name: ${basename}`;
+    basename_txt.className = 'text';
+    basename_txt.innerText = `${basename}`;
 
     div.append(basename_txt);
 }
@@ -148,16 +149,26 @@ function add_basename(div, basename)
 function add_created_date(div, date)
 {
     let created_txt = document.createElement("div");
-    created_txt.innerText = `Created on: ${date}`;
+    created_txt.innerText = `Created: ${date.slice(0,10)}`;
 
     div.append(created_txt);
+}
+
+function clipboard_img()
+{
+    let copy = document.createElement("img");
+    copy.src = "assets/copy to clipboard symbol.svg";
+    copy.className = 'clipboard';
+    copy.alt = "Copy to clipboard";
+    return copy;
 }
 
 function add_command_button(div, command)
 {
     let button = document.createElement("button");
-    button.innerText = command;
-    button.onclick = function(e){
+    button.innerText = `${command}`;
+    button.append(clipboard_img());
+    button.onclick = ()=>{
         navigator.clipboard.writeText(`!${command}`);
     }
     div.append(button);

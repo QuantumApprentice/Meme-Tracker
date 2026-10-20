@@ -21,14 +21,26 @@
         font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
         /* justify-content: space-between; */
       }
+      .text {
+        width: min(300px, 30vw);
+      }
       video, img {
         max-width: 300px;
         min-width: 0;
         height: auto;
         width: min(300px, 30vw);
       }
+      .clipboard {
+        max-width: 25px;
+        filter: invert(1);
+        transform: scaleX(-1) translateY(7px);
+      }
       button {
+        max-width: 300px;
+        /* width: min(300px, 30vw); */
         font-size: large;
+        white-space: normal;
+        word-wrap: break-word;
       }
     </style>
   </head>
