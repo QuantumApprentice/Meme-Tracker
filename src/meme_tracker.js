@@ -7,7 +7,7 @@ let img_type = false;
 
 async function load_meme_list()
 {
-    return fetch('./src/Meme_Tracker_list.json').then(res=>{
+    return fetch('./assets/Meme_Tracker_list.json').then(res=>{
         if (!res.ok) {
             throw new Error("ERROR: Unable to load Meme_Tracker_list.json");
         }
@@ -27,6 +27,10 @@ async function display_memes()
         let basename = memeList[i].filename;
         let command  = memeList[i].memename;
         let created  = memeList[i].created;
+
+        if (memeList[i].filetype == "audio") {
+            continue;
+        }
 
         list_meme(basename, command, created);
     }
@@ -60,7 +64,7 @@ function list_meme(basename, command, created)
 function create_meme_video(basename, command)
 {
     let vid = document.createElement("video");
-    vid.src = `./assets/${basename}.webm `;
+    vid.src = `./memes/${basename}.webm `;
     vid.loading = "lazy";
     vid.loop = true;
     vid.muted = true;
@@ -89,7 +93,7 @@ function create_meme_video(basename, command)
 function create_meme_image(basename, command, base)
 {
     let img = document.createElement("img");
-    img.src = `./assets/${basename}.gif`;
+    img.src = `./memes/${basename}.gif`;
     img.loading = "lazy";
     img.addEventListener("click", (e)=>{
         navigator.clipboard.writeText(`!${command}`);
