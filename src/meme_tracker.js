@@ -2,6 +2,9 @@
 // github.com/QuantumApprentice/Meme-Tracker
 "use strict";
 
+let img_type = false;
+
+
 async function load_meme_list()
 {
     return fetch('./src/Meme_Tracker_list.json').then(res=>{
@@ -12,32 +15,80 @@ async function load_meme_list()
     });
 }
 
-let img_type = false;
 async function display_memes()
 {
     let memeList = await load_meme_list();
     // console.log(memeList);
 
     let base   = document.getElementById("base");
-    buttons(base);
+    corner_buttons(base);
 
     for (let i = 0; i < 100; i++) {
         let basename = memeList[i].filename;
         let command  = memeList[i].memename;
-        if (img_type == false) {
-            append_meme_video(basename, command, base);
-        }
-        if (img_type == true) {
-            append_meme_image(basename, command, base);
-        }
+        let created  = memeList[i].created;
+
+        list_meme(basename, command, created);
     }
 }
 
-//TODO: might want to remove this if all the memes will be video/audio only
-function append_meme_image(basename, command, base)
+function list_meme(basename, command, created)
+{
+    let div;
+    if (img_type == false) {
+        div = create_meme_video(basename, command);
+    }
+    if (img_type == true) {
+        div = create_meme_image(basename, command);
+    }
+
+    add_basename(      div, basename);
+    add_created_date(  div, created );
+    add_command_button(div, command );
+
+    base.appendChild(div);
+
+}
+
+
+//TODO: decide what type of image I want to use
+//      (mp4/webm/gif)
+// create_meme_video() and the create_meme_image()
+// both create a video/image element and a div element
+// assign the className and any mouse functions to the video/image
+// returns the div with the image appended
+function create_meme_video(basename, command)
+{
+    let vid = document.createElement("video");
+    vid.src = `./assets/${basename}.webm `;
+    vid.loading = "lazy";
+    vid.loop = true;
+    vid.muted = true;
+    vid.play();
+    vid.addEventListener("click", (e)=>{
+        navigator.clipboard.writeText(`!${command}`);
+        e.currentTarget.muted = !e.currentTarget.muted;
+    });
+
+    // TODO: used to start playback on mouseover, now just loops
+    // probably delete if I don't want any mouseover behavior?
+    vid.addEventListener("mouseenter", (e)=>{
+        // e.currentTarget.play();
+    });
+    // mute on mouseout
+    vid.addEventListener("mouseout", (e)=>{
+        e.currentTarget.muted = true;
+    });
+
+    let div = document.createElement("div");
+    div.className = 'meme';
+    div.appendChild(vid);
+
+    return div;
+}
+function create_meme_image(basename, command, base)
 {
     let img = document.createElement("img");
-    // img.className = 'meme_img';
     img.src = `./assets/${basename}.gif`;
     img.loading = "lazy";
     img.addEventListener("click", (e)=>{
@@ -47,9 +98,7 @@ function append_meme_image(basename, command, base)
     div.className = 'meme';
     div.appendChild(img);
 
-    command_button(div, command);
-
-    base.appendChild(div);
+    return div;
 }
 //TODO: thought I would use this, but I can't think of a place to put the button yet
 // function copy_to_clipboard_button(data)
@@ -65,38 +114,42 @@ function append_meme_image(basename, command, base)
 //     />
 // }
 
-function append_meme_video(basename, command, base)
+// the user name of the person who requested/created this meme
+// TODO: none of the memes currently have a listed creator
+// this should be drawn from a separate txt file or database
+// during the Meme_Tracker_list.json creation process
+function add_username(div, user)
 {
-    let vid = document.createElement("video");
-    vid.src = `./assets/${basename}.webm `;
-    vid.loading = "lazy";
-    vid.loop = true;
-    vid.muted = true;
-    vid.play();
-    vid.addEventListener("click", (e)=>{
-        navigator.clipboard.writeText(`!${command}`);
-        e.currentTarget.muted = !e.currentTarget.muted;
-    });
-    vid.addEventListener("mouseenter", (e)=>{
-        e.currentTarget.play();
-        // e.currentTarget.muted = !e.currentTarget.muted;
-        // e.currentTarget.muted = false;
-    });
-    vid.addEventListener("mouseout", (e)=>{
-        // e.currentTarget.pause();
-        e.currentTarget.muted = true;
-    });
+    let username_txt = document.createElement("div");
+    username_txt = `Created by: ${user != undefined ? user : "Unknown"}`;
 
-    let div = document.createElement("div");
-    div.className = 'meme';
-    div.appendChild(vid);
-
-    command_button(div, command);
-
-    base.appendChild(div);
+    div.append(username_txt);
 }
 
-function command_button(div, command)
+// file name of the meme file itself, no extension
+// TODO: right now this is used for identifying the meme
+// for others to search for, but this sucks as a search
+// Need to add tags and a search system
+function add_basename(div, basename)
+{
+    let basename_txt = document.createElement("div");
+    basename_txt = `Name: ${basename}`;
+
+    div.append(basename_txt);
+}
+
+// date the meme was created on
+// TODO: right now this is read from the meme file itself,
+// but for the meme economy I need to track this separately
+function add_created_date(div, date)
+{
+    let created_txt = document.createElement("div");
+    created_txt.innerText = `Created on: ${date}`;
+
+    div.append(created_txt);
+}
+
+function add_command_button(div, command)
 {
     let button = document.createElement("button");
     button.innerText = command;
