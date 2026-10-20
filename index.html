@@ -9,38 +9,21 @@
       #base {
         display: flex;
         flex-wrap: wrap;
-        /* min-width: 980px; */
-        /* flex-shrink: 0 0 300px; */
-        /* flex-shrink: 0 0 300px; */
-        /* object-fit: contain; */
-        flex-basis: 980px;
+        gap: 10px;
       }
       .meme {
-        /* max-width: 300px; */
-        min-width: 0;
-        height: auto;
-        margin: 5px;
-        /* display: grid; */
-        /* grid-template-columns: repeat(3, minmax(0, 1fr)); */
-        /* grid-template-columns: 300px 300px 300px; */
-        /* display: flex; */
-        width: min(300px, 30vw);
-        /* max-width: 300px; */
-        /* width: max-content; */
-        /* display: flex; */
-
+        display: flex;
+        flex-direction: column;
+        /* justify-content: space-between; */
       }
       video, img {
         max-width: 300px;
         min-width: 0;
-        width: 100%;
         height: auto;
-        margin: 5px;
-        /* position: relative; */
-        /* display: flex; */
+        width: min(300px, 30vw);
       }
       button {
-        position: fixed;
+        /* position: fixed; */
       }
     </style>
   </head>

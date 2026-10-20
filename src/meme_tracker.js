@@ -18,23 +18,23 @@ async function display_memes()
     let memeList = await load_meme_list();
     // console.log(memeList);
 
-    let root   = document.getElementById("base");
-    buttons(root);
+    let base   = document.getElementById("base");
+    buttons(base);
 
-    for (let i = 0; i < 18; i++) {
+    for (let i = 0; i < 100; i++) {
         let basename = memeList[i].filename;
         let command  = memeList[i].memename;
         if (img_type == false) {
-            append_meme_video(basename, command, root);
+            append_meme_video(basename, command, base);
         }
         if (img_type == true) {
-            append_meme_image(basename, command, root);
+            append_meme_image(basename, command, base);
         }
     }
 }
 
 //TODO: might want to remove this if all the memes will be video/audio only
-function append_meme_image(basename, command, root)
+function append_meme_image(basename, command, base)
 {
     let img = document.createElement("img");
     // img.className = 'meme_img';
@@ -43,7 +43,13 @@ function append_meme_image(basename, command, root)
     img.addEventListener("click", (e)=>{
         navigator.clipboard.writeText(`!${command}`);
     });
-    root.appendChild(img);
+    let div = document.createElement("div");
+    div.className = 'meme';
+    div.appendChild(img);
+
+    command_button(div, command);
+
+    base.appendChild(div);
 }
 //TODO: thought I would use this, but I can't think of a place to put the button yet
 // function copy_to_clipboard_button(data)
@@ -59,7 +65,7 @@ function append_meme_image(basename, command, root)
 //     />
 // }
 
-function append_meme_video(basename, command, root)
+function append_meme_video(basename, command, base)
 {
     let vid = document.createElement("video");
     vid.src = `./assets/${basename}.webm `;
@@ -84,26 +90,42 @@ function append_meme_video(basename, command, root)
     let div = document.createElement("div");
     div.className = 'meme';
     div.appendChild(vid);
-    root.appendChild(div);
+
+    command_button(div, command);
+
+    base.appendChild(div);
 }
 
-function buttons(root)
+function command_button(div, command)
 {
     let button = document.createElement("button");
-    button.innerText = img_type ? "gif" : "webm";
-    button.onclick = ()=>{
+    button.innerText = command;
+    button.onclick = function(e){
+        navigator.clipboard.writeText(`!${command}`);
+    }
+    div.append(button);
+}
+
+function corner_buttons(base)
+{
+    let type = document.createElement("button");
+    type.innerText = img_type ? "gif" : "webm";
+    type.onclick = ()=>{
         img_type = !img_type;
-        root.innerHTML = "";
+        base.innerHTML = "";
         display_memes();
     };
-    root.appendChild(button);
+    type.style = "position: fixed"
+
     let github = document.createElement("button");
     github.innerText = "Repo";
     github.onclick = ()=>{
         window.open("https://github.com/QuantumApprentice/Meme-Tracker");
     }
-    github.style="top: 40px"
-    root.appendChild(github)
+    github.style="top: 40px; position: fixed";
+
+    base.appendChild(type);
+    base.appendChild(github);
 }
 
 
