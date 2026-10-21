@@ -15,6 +15,31 @@ async function load_meme_list()
     });
 }
 
+// basic lazy loading using intersection observer
+// images/videos have link assigned to .url instead of .src
+// returns new intersection observer, which is used to observe images
+function lazy_loading()
+{
+    let observerCB = (entries, observer)=>{
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                let img = e.target;
+                img.src = img.url;
+                observer.unobserve(img);
+            }
+        });
+    };
+    let observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 1.0,
+    };
+
+    let observer = new IntersectionObserver(observerCB, observerOptions);
+
+    return observer;
+}
+
 async function display_memes()
 {
     let memeList = await load_meme_list();
@@ -23,6 +48,7 @@ async function display_memes()
     let base   = document.getElementById("base");
     corner_buttons(base);
 
+    let observer = lazy_loading();
     for (let i = 0; i < 100; i++) {
         let basename = memeList[i].filename;
         let command  = memeList[i].memename;
@@ -32,18 +58,18 @@ async function display_memes()
             continue;
         }
 
-        list_meme(basename, command, created);
+        list_meme(basename, command, created, observer);
     }
 }
 
-function list_meme(basename, command, created)
+function list_meme(basename, command, created, observer)
 {
     let div;
     if (img_type == false) {
-        div = create_meme_video(basename, command);
+        div = create_meme_video(basename, command, observer);
     }
     if (img_type == true) {
-        div = create_meme_image(basename, command);
+        div = create_meme_image(basename, command, observer);
     }
 
     add_basename(      div, basename);
@@ -60,11 +86,11 @@ function list_meme(basename, command, created)
 // both create a video/image element and a div element
 // assign the className and any mouse functions to the video/image
 // returns the div with the image appended
-function create_meme_video(basename, command)
+function create_meme_video(basename, command, observer)
 {
     let vid     = document.createElement("video");
-    vid.src     = `./memes/${basename}.webm `;
-    vid.loading = "lazy";
+    vid.url = `./memes/${basename}.webm`;
+    observer.observe(vid);
     vid.loop    = true;
     vid.muted   = true;
     vid.volume  = 0.3;
@@ -90,11 +116,11 @@ function create_meme_video(basename, command)
 
     return div;
 }
-function create_meme_image(basename, command, base)
+function create_meme_image(basename, command, observer)
 {
     let img = document.createElement("img");
-    img.src = `./memes/${basename}.gif`;
-    img.loading = "lazy";
+    img.url = `./memes/${basename}.gif`;
+    observer.observe(img);
     img.addEventListener("click", (e)=>{
         navigator.clipboard.writeText(`!${command}`);
     });
@@ -104,19 +130,6 @@ function create_meme_image(basename, command, base)
 
     return div;
 }
-//TODO: thought I would use this, but I can't think of a place to put the button yet
-// function copy_to_clipboard_button(data)
-// {
-//     return <img className='clipboard'
-//         src={"copy to clipboard symbol.svg"}
-//         onClick={()=>{
-//             navigator.clipboard.writeText(
-//                 `${data}`
-//             );
-//         }}
-//         onError={()=>{setErr(true)}}
-//     />
-// }
 
 // the user name of the person who requested/created this meme
 // TODO: none of the memes currently have a listed creator
