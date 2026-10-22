@@ -23,9 +23,20 @@ function lazy_loading()
     let observerCB = (entries, observer)=>{
         entries.forEach(e => {
             if (e.isIntersecting) {
-                let img = e.target;
-                img.src = img.url;
-                observer.unobserve(img);
+                // meme can be either gif or webm
+                // gif are handled as images
+                // while webm are handled as videos
+                // which makes handling errors frustrating
+                // since you can't just replace a video with an image url
+                let meme = e.target;
+                meme.src = meme.url;
+
+                // meme.onerror = ()=>{
+                //     meme.src = "assets/favicon.png";
+                // }
+
+
+                observer.unobserve(meme);
             }
         });
     };
@@ -49,6 +60,18 @@ async function display_memes()
     corner_buttons(base);
 
     let observer = lazy_loading();
+
+    // memeList.forEach((e)=>{
+    //     let basename = e.filename;
+    //     let command  = e.memename;
+    //     let created  = e.created;
+    //     if (e.filetype == "audio") {
+    //         return;
+    //     }
+    //     list_meme(basename, command, created, observer);
+    // });
+
+
     for (let i = 0; i < 100; i++) {
         let basename = memeList[i].filename;
         let command  = memeList[i].memename;
@@ -170,7 +193,7 @@ function add_created_date(div, date)
 function clipboard_img()
 {
     let copy = document.createElement("img");
-    copy.src = "assets/copy to clipboard symbol.svg";
+    copy.src = "assets/clipboard.svg";
     copy.className = 'clipboard';
     copy.alt = "Copy to clipboard";
     return copy;
