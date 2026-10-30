@@ -14,6 +14,7 @@
         flex-wrap: wrap;
         gap: 10px;
       }
+
       .meme {
         display: flex;
         flex-direction: column;
@@ -25,6 +26,9 @@
         width: min(300px, 30vw);
       }
       video, img {
+        object-position: top;
+        object-fit: cover;
+        max-height: 400px;
         max-width: 300px;
         min-width: 0;
         height: auto;
