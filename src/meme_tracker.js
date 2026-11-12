@@ -27,15 +27,23 @@ function lazy_loading()
 {
     let observerCB = (entries, observer)=>{
         entries.forEach(e => {
+            setTimeout(() => {
+            }, 1000);
             if (e.isIntersecting) {
-                // meme can be either gif or webm
+                // console.log("loading:",e.target.url);
+                // meme can be either gif or webm (or mp4 sometimes)
                 // gif are handled as images
                 // while webm are handled as videos
                 // which makes handling errors frustrating
                 // since you can't just replace a video with an image url
-                let meme = e.target;
-                meme.src = meme.url;
+                let meme  = e.target;
+                meme.src  = meme.url;
                 meme.play = true;
+
+                //TODO: add a delay to loading to check if image
+                //      is still in viewport in case the user
+                //      is scrolling by really fast
+
 
                 //TODO: need to fix this to work better for mp4s
                 //      if I ever bother to get that far
@@ -96,17 +104,20 @@ async function display_memes()
 
 function list_meme(basename, command, created, observer)
 {
-    let div;
+    let meme;
     if (types[img_type] == "webm") {
-        div = create_meme_video(basename, command, observer);
+        meme = create_meme_webm(basename, command, observer);
     }
     if (types[img_type] == "gif") {
-        div = create_meme_image(basename, command, observer);
+        meme = create_meme_gif(basename, command, observer);
     }
     if (types[img_type] == "mp4") {
-        div = create_meme_mp4(basename, command, observer);
+        meme = create_meme_mp4(basename, command, observer);
     }
+    let div = document.createElement("div");
+    div.className = "meme";
 
+    div.append(meme);
     add_basename(      div, basename);
     add_created_date(  div, created );
     add_command_button(div, command );
@@ -151,10 +162,6 @@ async function greenscreen(video, canvas)
     }
     ctx2.putImageData(frame, 0, 0);
 
-
-    // setTimeout(() => {
-    //     greenscreen(video, canvas);
-    // }, 10);
 }
 
 function create_meme_mp4(basename, command, observer)
@@ -166,6 +173,10 @@ function create_meme_mp4(basename, command, observer)
     vid.muted   = true;
     vid.volume  = 0.5;
     vid.play();
+
+    // vid.onerror = (e)=>{
+    //     e.parentNode.remove();
+    // }
 
     // apparently each image needs its own canvas
     // or else all the image draws crossover onto each other
@@ -196,11 +207,11 @@ function create_meme_mp4(basename, command, observer)
 
 //TODO: decide what type of image I want to use
 //      (mp4/webm/gif)
-// create_meme_video() and the create_meme_image()
+// create_meme_webm() and the create_meme_gif()
 // both create a video/image element and a div element
 // assign the className and any mouse functions to the video/image
 // returns the div with the image appended
-function create_meme_video(basename, command, observer)
+function create_meme_webm(basename, command, observer)
 {
     let vid     = document.createElement("video");
     vid.url     = `./memes/webm/${basename}.webm`;
@@ -209,6 +220,7 @@ function create_meme_video(basename, command, observer)
     vid.muted   = true;
     vid.volume  = 0.5;
     vid.play();
+    // vid.id = `${command}`;
 
     // mute/unmute on click
     // TODO: restart playback on click?
@@ -218,7 +230,7 @@ function create_meme_video(basename, command, observer)
     });
 
     // mute on mouseout
-    vid.addEventListener("mouseout", (e)=>{
+    vid.addEventListener("mouseleave", (e)=>{
         e.currentTarget.muted = true;
     });
 
@@ -227,18 +239,21 @@ function create_meme_video(basename, command, observer)
     // console.log("vid height: ", vid.height);
 
     let div = document.createElement("div");
-    div.className = 'meme';
+    div.className = 'overlay';
     div.appendChild(vid);
+
+    add_overlay(vid, div);
 
     return div;
 }
-function create_meme_image(basename, command, observer)
+function create_meme_gif(basename, command, observer)
 {
     let img = document.createElement("img");
     img.url = `./memes/gif/${basename}.gif`;
     observer.observe(img);
     img.addEventListener("click", ()=>{
-        navigator.clipboard.writeText(`!${command}`);
+        // navigator.clipboard.writeText(`!${command}`);
+        navigator.clipboard.writeText(img.src);
     });
     let div = document.createElement("div");
     div.className = 'meme';
@@ -254,7 +269,7 @@ function create_meme_image(basename, command, observer)
 function add_username(div, user)
 {
     let username_txt = document.createElement("div");
-    username_txt = `Created by: ${user != undefined ? user : "Unknown"}`;
+    username_txt = `Created by: ${user == undefined ? "Unknown" : user}`;
 
     div.append(username_txt);
 }
@@ -326,6 +341,62 @@ function corner_buttons(base)
 
     base.appendChild(type);
     base.appendChild(github);
+}
+
+function add_audio_button(div, vid)
+{
+    let audio = document.createElement("img");
+    audio.src = "assets/sound_off.svg";
+    audio.className = 'sound_off';
+
+    audio.onclick = (e)=>{
+        vid.muted = !vid.muted;
+        e.target.style.visibility = vid.muted ? "visible" : "hidden";
+    }
+    vid.onclick = ()=>{
+        audio.style.visibility = vid.muted ? "visible" : "hidden";
+    }
+    vid.addEventListener("mouseleave", (e)=>{
+        audio.style.visibility = "visible";
+    })
+
+    audio.className ="audio_icon";
+    div.append(audio);
+
+    let volume = document.createElement("input");
+    volume.className = "volume";
+    volume.type = "range";
+    volume.min  = 0.00;
+    volume.max  = 1.00;
+    volume.step = 0.01;
+    volume.value= 0.50;
+    volume.addEventListener("input", (e)=>{
+        vid.volume = e.target.value;
+    });
+
+    div.append(volume);
+
+}
+
+function add_overlay(img, div)
+{
+    // let id = img.id;
+    // console.log("id:",id);
+    // if (img.videoWidth == 0) {
+    //     setTimeout(() => {
+    //         add_overlay(img,div);
+    //     }, 200);
+    // }
+
+    // let overlay = document.createElement("div");
+    // div.width = img.videoWidth;
+    // div.height = img.videoHeight;
+    // console.log("w:",div.width,"h:",div.height);
+    // add_audio_button(overlay, img);
+    add_audio_button(div, img);
+    // overlay.className = "overlay";
+
+    // div.append(overlay);
 }
 
 
