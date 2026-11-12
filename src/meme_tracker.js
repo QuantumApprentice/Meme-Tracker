@@ -229,16 +229,13 @@ function create_meme_webm(basename, command, observer)
         e.currentTarget.muted = !e.currentTarget.muted;
     });
 
-    // mute on mouseout
-    vid.addEventListener("mouseleave", (e)=>{
-        e.currentTarget.muted = true;
-    });
-
-    //TODO: what am I doing with the vid height?
-    // if (vid.height)
-    // console.log("vid height: ", vid.height);
-
     let div = document.createElement("div");
+    // mute on mouseout
+    // attaching the event to the containing div
+    // prevents it from firing when hovering the overly
+    div.addEventListener("mouseleave", ()=>{
+        vid.muted = true;
+    });
     div.className = 'overlay';
     div.appendChild(vid);
 
@@ -356,9 +353,11 @@ function add_audio_button(div, vid)
     vid.onclick = ()=>{
         audio.style.visibility = vid.muted ? "visible" : "hidden";
     }
-    vid.addEventListener("mouseleave", (e)=>{
+    div.addEventListener("mouseleave", ()=>{
+        // attaching the event to the containing div
+        // prevents it from firing when hovering the overly
         audio.style.visibility = "visible";
-    })
+    });
 
     audio.className ="audio_icon";
     div.append(audio);
