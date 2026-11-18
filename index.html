@@ -60,24 +60,24 @@
         font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
         /* justify-content: space-between; */
       }
-      .test {
+      .underlay {
+        /* outline: solid green; */
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: opacity .3s ease;
-        /* outline: solid green; */
         width: 100%;
         /* height: 100%; */
       }
       .overlay {
+        /* outline: solid blue; */
         position: absolute;
         display: flex;
         align-items: center;
         justify-content: center;
         /* opacity: 0; */
         transition: opacity .3s ease;
-        /* outline: solid blue; */
         width: 100%;
         height: 100%;
       }
@@ -98,6 +98,24 @@
     </style>
   </head>
   <body>
+    <div>
+      <button id="imgtype"
+        onclick="window.location.assign('#/gif');"
+        style="position:fixed">
+        Gif
+      </button>
+      <button
+        onclick="window.location.assign('#/webm');"
+        style="position:fixed; inset:auto auto auto 45px">
+        Webm
+      </button>
+      <button
+        onclick="window.open('https://github.com/QuantumApprentice/Meme-Tracker');"
+        style="position:fixed; inset:40px auto auto auto">
+        Repo
+      </button>
+    </div>
+
     <div id="base"></div>
     <script src="src/meme_tracker.js"></script>
      <!-- <script src="src/canvas.js"></script> -->

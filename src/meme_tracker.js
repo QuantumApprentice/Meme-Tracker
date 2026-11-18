@@ -7,8 +7,30 @@ let types = [
     "gif",
     "mp4"
 ]
-let img_type = 0;
+let img_type  = 0;
+let favorites = [];
 
+function routing()
+{
+    window.addEventListener("hashchange",()=>{
+        const current_path = window.location.hash.slice(2);
+        img_type = types.indexOf(current_path);
+
+        if (img_type > 0 && img_type < 3) {
+            let next = types[(img_type+1) %3];
+            console.log("next:",next);
+
+            let btn = document.getElementById("imgtype");
+            console.log("btn1:",btn);
+            btn.onclick = ()=>window.location.assign(`#/${next}`);
+            console.log("btn2:",btn);
+
+            // btn.innerText = types[((img_type+1) % 3)];
+
+            display_memes();
+        }
+    });
+}
 
 async function load_meme_list()
 {
@@ -45,18 +67,10 @@ function lazy_loading()
                 //      is scrolling by really fast
 
 
-                //TODO: need to fix this to work better for mp4s
-                //      if I ever bother to get that far
-                // let canvas = document.createElement("canvas");
-                // setTimeout(() => {
-                //     greenscreen(meme, canvas);
-                // }, 200);
-            
-
                 observer.unobserve(meme);
             }
             //TODO: need to add something for when
-            //      image is outside viewable area
+            //      image is outside viewable area?
         });
     };
     let observerOptions = {
@@ -75,8 +89,9 @@ async function display_memes()
     let memeList = await load_meme_list();
     // console.log(memeList);
 
-    let base   = document.getElementById("base");
-    corner_buttons(base);
+    let base = document.getElementById("base");
+    base.innerHTML = "";
+    // corner_buttons(base);
 
     let observer = lazy_loading();
 
@@ -106,13 +121,13 @@ function list_meme(basename, command, created, observer)
 {
     let meme;
     if (types[img_type] == "webm") {
-        meme = create_meme_webm(basename, command, observer);
+        meme = create_meme_webm(basename, observer);
     }
     if (types[img_type] == "gif") {
-        meme = create_meme_gif(basename, command, observer);
+        meme = create_meme_gif(basename, observer);
     }
     if (types[img_type] == "mp4") {
-        meme = create_meme_mp4(basename, command, observer);
+        meme = create_meme_mp4(basename, observer);
     }
     let div = document.createElement("div");
     div.className = "meme";
@@ -125,6 +140,11 @@ function list_meme(basename, command, created, observer)
     base.appendChild(div);
 }
 
+//TODO: this is being kept in case I need
+//      to reference canvas commands to
+//      manipulate individual video frames
+//      from a supported media type
+//  Delete when I find a better place to save it
 async function greenscreen(video, canvas)
 {
     setTimeout(() => {
@@ -151,20 +171,22 @@ async function greenscreen(video, canvas)
     const frame = ctx1.getImageData(0,0,w,h);
     const data  = frame.data;
 
+    // loop through the image pixels
+    // and convert anything vaguelly green to clear alpha
     for (let i = 0; i < data.length; i++) {
         const r = data[i +0];
         const g = data[i +1];
         const b = data[i +2];
         if ((g > 250) && (r < 60) && (b < 60)) {
-            //alpha channel on image?
-            data[i+3] = 0;
+            data[i+3] = 0; //alpha channel on image
         }
     }
     ctx2.putImageData(frame, 0, 0);
-
 }
 
-function create_meme_mp4(basename, command, observer)
+//TODO: Delete this when I finish messing with
+//      the greenscreen stuff
+function create_meme_mp4(basename, observer)
 {
     let vid     = document.createElement("video");
     vid.url     = `./memes/mp4/${basename}.mp4`
@@ -188,7 +210,7 @@ function create_meme_mp4(basename, command, observer)
     // mute/unmute on click
     // TODO: restart playback on click?
     vid.addEventListener("click", (e)=>{
-        navigator.clipboard.writeText(`!${command}`);
+        // navigator.clipboard.writeText(`!${command}`);
         e.currentTarget.muted = !e.currentTarget.muted;
     });
 
@@ -197,21 +219,19 @@ function create_meme_mp4(basename, command, observer)
         e.currentTarget.muted = true;
     });
 
-    let div = document.createElement("div");
-    div.className = "meme";
-    div.appendChild(vid);
-    div.appendChild(canvas);
+    let meme = document.createElement("div");
+    meme.className = "meme";
+    meme.appendChild(vid);
+    meme.appendChild(canvas);
 
-    return div;
+    return meme;
 }
 
-//TODO: decide what type of image I want to use
-//      (mp4/webm/gif)
 // create_meme_webm() and the create_meme_gif()
 // both create a video/image element and a div element
 // assign the className and any mouse functions to the video/image
 // returns the div with the image appended
-function create_meme_webm(basename, command, observer)
+function create_meme_webm(basename, observer)
 {
     let vid     = document.createElement("video");
     vid.url     = `./memes/webm/${basename}.webm`;
@@ -220,43 +240,44 @@ function create_meme_webm(basename, command, observer)
     vid.muted   = true;
     vid.volume  = 0.5;
     vid.play();
-    // vid.id = `${command}`;
 
     // mute/unmute on click
     // TODO: restart playback on click?
     vid.addEventListener("click", (e)=>{
-        navigator.clipboard.writeText(`!${command}`);
+        // navigator.clipboard.writeText(`!${command}`);
         e.currentTarget.muted = !e.currentTarget.muted;
     });
 
-    let div = document.createElement("div");
+    let meme = document.createElement("div");
     // mute on mouseout
     // attaching the event to the containing div
     // prevents it from firing when hovering the overly
-    div.addEventListener("mouseleave", ()=>{
+    meme.addEventListener("mouseleave", ()=>{
         vid.muted = true;
     });
-    div.className = 'overlay';
-    div.appendChild(vid);
+    meme.className = 'underlay';
+    meme.appendChild(vid);
 
-    add_overlay(vid, div);
+    add_overlay(vid, meme);
 
-    return div;
+    return meme;
 }
-function create_meme_gif(basename, command, observer)
+function create_meme_gif(basename, observer)
 {
     let img = document.createElement("img");
     img.url = `./memes/gif/${basename}.gif`;
     observer.observe(img);
     img.addEventListener("click", ()=>{
-        // navigator.clipboard.writeText(`!${command}`);
+        // instead of copying the command when clicking a gif
+        // copy the gif link to the clipboard for pasting around town
         navigator.clipboard.writeText(img.src);
     });
-    let div = document.createElement("div");
-    div.className = 'meme';
-    div.appendChild(img);
 
-    return div;
+    let meme = document.createElement("div");
+    meme.className = 'meme';
+    meme.appendChild(img);
+
+    return meme;
 }
 
 // the user name of the person who requested/created this meme
@@ -316,6 +337,9 @@ function add_command_button(div, command)
     div.append(button);
 }
 
+//TODO: delete corner_buttons(),
+//      replaced by buttons built in the dom
+//      and the routing system...whenever I get it working anyway
 function corner_buttons(base)
 {
     // switch between webm, gif, mp4
@@ -327,6 +351,7 @@ function corner_buttons(base)
         display_memes();
     };
     type.style = "position: fixed";
+    base.appendChild(type);
 
     // repo link
     let github = document.createElement("button");
@@ -335,32 +360,32 @@ function corner_buttons(base)
         window.open("https://github.com/QuantumApprentice/Meme-Tracker");
     }
     github.style="top: 40px; position: fixed";
-
-    base.appendChild(type);
     base.appendChild(github);
 }
 
-function add_audio_button(div, vid)
+function add_audio_buttons(overlay, vid)
 {
-    let audio = document.createElement("img");
-    audio.src = "assets/sound_off.svg";
-    audio.className = 'sound_off';
+    let mute_icon = document.createElement("img");
+    mute_icon.src = "assets/sound_off.svg";
+    mute_icon.className = 'sound_off';
 
-    audio.onclick = (e)=>{
-        vid.muted = !vid.muted;
-        e.target.style.visibility = vid.muted ? "visible" : "hidden";
-    }
     vid.onclick = ()=>{
-        audio.style.visibility = vid.muted ? "visible" : "hidden";
+        mute_icon.style.visibility = vid.muted ? "visible" : "hidden";
     }
-    div.addEventListener("mouseleave", ()=>{
-        // attaching the event to the containing div
+    overlay.onclick = ()=>{
+        vid.muted = !vid.muted;
+        mute_icon.style.visibility = vid.muted ? "visible" : "hidden";
+    }
+    overlay.addEventListener("mouseleave", ()=>{
+        // attaching the event to the containing overlay
         // prevents it from firing when hovering the overly
-        audio.style.visibility = "visible";
+        // but now it fires whenever I click a button on the overlay,
+        // that's not what I want...sadface :(
+        mute_icon.style.visibility = "visible";
     });
 
-    audio.className ="audio_icon";
-    div.append(audio);
+    mute_icon.className ="audio_icon";
+    overlay.append(mute_icon);
 
     let volume = document.createElement("input");
     volume.className = "volume";
@@ -373,30 +398,52 @@ function add_audio_button(div, vid)
         vid.volume = e.target.value;
     });
 
-    div.append(volume);
+    overlay.append(volume);
 
 }
 
-function add_overlay(img, div)
+function add_heart(div)
+{
+    let heart_icon = document.createElement("img");
+    heart_icon.src = "assets/heart.svg";
+    heart_icon.onclick = (div)=>{
+        favorites.push(div);
+    }
+
+    // let heart_icon = document.createElement("button");
+    // heart_icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>';
+
+    heart_icon.className = "heart";
+
+    div.append(heart_icon);
+}
+
+function add_overlay(img, meme)
 {
     // let id = img.id;
     // console.log("id:",id);
     // if (img.videoWidth == 0) {
     //     setTimeout(() => {
-    //         add_overlay(img,div);
+    //         add_overlay(img,meme);
     //     }, 200);
     // }
 
-    // let overlay = document.createElement("div");
-    // div.width = img.videoWidth;
-    // div.height = img.videoHeight;
-    // console.log("w:",div.width,"h:",div.height);
-    // add_audio_button(overlay, img);
-    add_audio_button(div, img);
-    // overlay.className = "overlay";
+    let overlay = document.createElement("div");
+    overlay.className = "overlay";
+    // overlay.addEventListener("click", (e)=>{
+    //     img.muted = !img.muted;
+    // });
 
-    // div.append(overlay);
+    add_audio_buttons(overlay,img);
+    add_heart(overlay);
+
+
+    // add_audio_buttons(meme, img);
+    // add_heart(meme);
+
+    meme.append(overlay);
 }
 
 
+routing();
 display_memes();
