@@ -1,0 +1,97 @@
+:root {
+  color-scheme: light dark;
+}
+#base {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+
+.text {
+  width: min(300px, 30vw);
+}
+video, img {
+  object-position: top;
+  object-fit: cover;
+  max-height: 400px;
+  max-width: 300px;
+  min-width: 0;
+  height: auto;
+  width: min(300px, 30vw);
+}
+.clipboard {
+  max-width: 20px;
+  filter: invert(1);
+  transform: scaleX(-1) translateY(5px);
+}
+.audio_icon {
+  z-index: 1;
+  cursor: pointer;
+  position: absolute;
+  transform: scale(.3);
+  filter: invert(1);
+}
+.volume {
+  position: absolute;
+  writing-mode: sideways-lr;
+  inset: 8px 8px 8px auto;
+}
+.heart {
+  position: absolute;
+  inset: auto auto 8px 8px;
+  width: min(50px, 10vw);
+  max-height: 45px;
+  background-color: #00000000;
+  border-color: #00000000;
+}
+.heart:hover svg {
+  fill:rebeccapurple;
+}
+.heart.is_fav svg {
+  fill:currentColor;
+}
+.meme {
+  /* outline: solid red; */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-width: 300px;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  /* justify-content: space-between; */
+}
+.underlay {
+  /* outline: solid green; */
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity .3s ease;
+  width: 100%;
+  /* height: 100%; */
+}
+.overlay {
+  /* outline: solid blue; */
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* opacity: 0; */
+  transition: opacity .3s ease;
+  width: 100%;
+  height: 100%;
+}
+.overlay:hover {
+  opacity: 1;
+  /* position: relative; */
+  /* filter: invert(1); */
+}
+button {
+  z-index: 1;
+  cursor: pointer;
+  max-width: 300px;
+  /* width: min(300px, 30vw); */
+  font-size: large;
+  white-space: normal;
+  word-wrap: break-word;
+}

@@ -2,116 +2,22 @@
 <html lang="en" data-color-mode="auto" data-dark-theme="dark">
   <head>
     <link rel="icon" type="image/x-icon" href="assets/favicon.png">
+    <link rel="stylesheet" href="meme_tracker.css">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Meme Tracker</title>
-    <style type="text/css">
-      :root {
-        color-scheme: light dark;
-      }
-      #base {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
-
-      .text {
-        width: min(300px, 30vw);
-      }
-      video, img {
-        object-position: top;
-        object-fit: cover;
-        max-height: 400px;
-        max-width: 300px;
-        min-width: 0;
-        height: auto;
-        width: min(300px, 30vw);
-      }
-      .clipboard {
-        max-width: 20px;
-        filter: invert(1);
-        transform: scaleX(-1) translateY(5px);
-      }
-      .audio_icon {
-        z-index: 1;
-        cursor: pointer;
-        position: absolute;
-        transform: scale(.3);
-        filter: invert(1);
-      }
-      .volume {
-        position: absolute;
-        writing-mode: sideways-lr;
-        inset: 8px 8px 8px auto;
-      }
-      .heart {
-        position: absolute;
-        inset: auto auto 8px 8px;
-        width: 50px;
-        height: 50px;
-      }
-      .meme {
-        /* outline: solid red; */
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        max-width: 300px;
-        font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
-        /* justify-content: space-between; */
-      }
-      .underlay {
-        /* outline: solid green; */
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: opacity .3s ease;
-        width: 100%;
-        /* height: 100%; */
-      }
-      .overlay {
-        /* outline: solid blue; */
-        position: absolute;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        /* opacity: 0; */
-        transition: opacity .3s ease;
-        width: 100%;
-        height: 100%;
-      }
-      .overlay:hover {
-        opacity: 1;
-        /* position: relative; */
-        /* filter: invert(1); */
-      }
-      button {
-        z-index: 1;
-        cursor: pointer;
-        max-width: 300px;
-        /* width: min(300px, 30vw); */
-        font-size: large;
-        white-space: normal;
-        word-wrap: break-word;
-      }
-    </style>
+    <style type="text/css"></style> <!--TODO: delete this line, css moved to meme_tracker.css-->
   </head>
   <body>
     <div>
       <button id="imgtype"
         onclick="window.location.assign('#/gif');"
-        style="position:fixed">
+        style="position:fixed; z-index: 2;">
         Gif
       </button>
       <button
-        onclick="window.location.assign('#/webm');"
-        style="position:fixed; inset:auto auto auto 45px">
-        Webm
-      </button>
-      <button
         onclick="window.open('https://github.com/QuantumApprentice/Meme-Tracker');"
-        style="position:fixed; inset:40px auto auto auto">
+        style="position:fixed; z-index: 2; inset:40px auto auto auto">
         Repo
       </button>
     </div>

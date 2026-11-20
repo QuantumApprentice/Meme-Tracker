@@ -6,9 +6,15 @@ let types = [
     "webm",
     "gif",
     "mp4"
-]
-let img_type  = 0;
+];
+
+// storing favorites in an array just for start
+// need to switch to some more permanent storage
 let favorites = [];
+let img_type  = 0;
+let new_base  = null;
+let base_gif  = null;
+let base_webm = null;
 
 function routing()
 {
@@ -16,19 +22,17 @@ function routing()
         const current_path = window.location.hash.slice(2);
         img_type = types.indexOf(current_path);
 
-        if (img_type > 0 && img_type < 3) {
-            let next = types[(img_type+1) %3];
-            console.log("next:",next);
-
+        if (img_type >= 0 && img_type < 3) {
             let btn = document.getElementById("imgtype");
-            console.log("btn1:",btn);
-            btn.onclick = ()=>window.location.assign(`#/${next}`);
-            console.log("btn2:",btn);
-
-            // btn.innerText = types[((img_type+1) % 3)];
-
-            display_memes();
+            if ((img_type == 0) || (img_type == 2)) {
+                btn.textContent = "Gif";
+                btn.onclick = ()=>window.location.assign(`#/gif`);
+            } else {
+                btn.textContent = "Webm";
+                btn.onclick = ()=>window.location.assign(`#/webm`);
+            }
         }
+        display_memes();
     });
 }
 
@@ -52,7 +56,6 @@ function lazy_loading()
             setTimeout(() => {
             }, 1000);
             if (e.isIntersecting) {
-                // console.log("loading:",e.target.url);
                 // meme can be either gif or webm (or mp4 sometimes)
                 // gif are handled as images
                 // while webm are handled as videos
@@ -60,17 +63,23 @@ function lazy_loading()
                 // since you can't just replace a video with an image url
                 let meme  = e.target;
                 meme.src  = meme.url;
-                meme.play = true;
+                if (meme instanceof HTMLMediaElement) {
+                    meme.play();
+                }
 
                 //TODO: add a delay to loading to check if image
                 //      is still in viewport in case the user
                 //      is scrolling by really fast
-
-
-                observer.unobserve(meme);
+                // observer.unobserve(meme);
             }
             //TODO: need to add something for when
             //      image is outside viewable area?
+            else {
+                let meme = e.target;
+                if (meme instanceof HTMLMediaElement) {
+                    meme.pause();
+                }
+            }
         });
     };
     let observerOptions = {
@@ -89,35 +98,53 @@ async function display_memes()
     let memeList = await load_meme_list();
     // console.log(memeList);
 
-    let base = document.getElementById("base");
-    base.innerHTML = "";
-    // corner_buttons(base);
+    const current_path = window.location.hash.slice(2);
+    img_type = types.indexOf(current_path);
 
-    let observer = lazy_loading();
+    if (new_base == null) {
+        let observer = lazy_loading();
 
-    memeList.forEach((e)=>{
-        let basename = e.filename;
-        let command  = e.memename;
-        let created  = e.created;
-        if (e.filetype == "audio") {
-            return;
+        base_webm = document.createElement("div");
+        memeList.forEach((e)=>{
+            let basename = e.filename;
+            let command  = e.memename;
+            let created  = e.created;
+            if (e.filetype == "audio") {
+                return;
+            }
+            base_webm.appendChild(
+                list_meme(basename, command, created, observer, 0)
+            );
+        });
+
+        base_gif  = document.createElement("div");
+        memeList.forEach((e)=>{
+            let basename = e.filename;
+            let command  = e.memename;
+            let created  = e.created;
+            if (e.filetype == "audio") {
+                return;
+            }
+            base_gif.appendChild(
+                list_meme(basename, command, created, observer, 1)
+            );
+        });
+
+        new_base = base_webm;
+    } else {
+        if (img_type == 0) {
+            new_base = base_webm;
+        } else {
+            new_base = base_gif;
         }
-        list_meme(basename, command, created, observer);
-    });
+    }
 
-
-    // for (let i = 0; i < 100; i++) {
-    //     let basename = memeList[i].filename;
-    //     let command  = memeList[i].memename;
-    //     let created  = memeList[i].created;
-    //     if (memeList[i].filetype == "audio") {
-    //         continue;
-    //     }
-    //     list_meme(basename, command, created, observer);
-    // }
+    let base = document.getElementById("base");
+    base.replaceWith(new_base);
+    new_base.id = "base";
 }
 
-function list_meme(basename, command, created, observer)
+function list_meme(basename, command, created, observer, img_type)
 {
     let meme;
     if (types[img_type] == "webm") {
@@ -137,7 +164,7 @@ function list_meme(basename, command, created, observer)
     add_created_date(  div, created );
     add_command_button(div, command );
 
-    base.appendChild(div);
+    return div;
 }
 
 //TODO: this is being kept in case I need
@@ -233,12 +260,14 @@ function create_meme_mp4(basename, observer)
 // returns the div with the image appended
 function create_meme_webm(basename, observer)
 {
-    let vid     = document.createElement("video");
-    vid.url     = `./memes/webm/${basename}.webm`;
+    let vid      = document.createElement("video");
+    vid.url      = `./memes/webm/${basename}.webm`;
+    vid.id       = basename;
     observer.observe(vid);
-    vid.loop    = true;
-    vid.muted   = true;
-    vid.volume  = 0.5;
+    vid.loop     = true;
+    vid.muted    = true;
+    vid.volume   = 0.5;
+    vid.favorite = favorites.includes(vid.id);
     vid.play();
 
     // mute/unmute on click
@@ -255,9 +284,9 @@ function create_meme_webm(basename, observer)
     meme.addEventListener("mouseleave", ()=>{
         vid.muted = true;
     });
+
     meme.className = 'underlay';
     meme.appendChild(vid);
-
     add_overlay(vid, meme);
 
     return meme;
@@ -389,57 +418,58 @@ function add_audio_buttons(overlay, vid)
 
     let volume = document.createElement("input");
     volume.className = "volume";
-    volume.type = "range";
-    volume.min  = 0.00;
-    volume.max  = 1.00;
-    volume.step = 0.01;
-    volume.value= 0.50;
+    volume.type      = "range";
+    volume.min       = 0.00;
+    volume.max       = 1.00;
+    volume.step      = 0.01;
+    volume.value     = 0.50;
+
     volume.addEventListener("input", (e)=>{
         vid.volume = e.target.value;
     });
-
-    overlay.append(volume);
-
-}
-
-function add_heart(div)
-{
-    let heart_icon = document.createElement("img");
-    heart_icon.src = "assets/heart.svg";
-    heart_icon.onclick = (div)=>{
-        favorites.push(div);
+    volume.onclick = (e)=>{
+        e.stopPropagation();
     }
 
-    // let heart_icon = document.createElement("button");
-    // heart_icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>';
+    overlay.append(volume);
+}
 
+function add_heart(overlay, img)
+{
+    let heart_icon = document.createElement("button");
     heart_icon.className = "heart";
+    heart_icon.innerHTML =
+        `<svg viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true">
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>`;
 
-    div.append(heart_icon);
+    heart_icon.onclick = (e)=>{
+        e.stopPropagation();
+        // storing favorites in an array just for start
+        // need to switch to some more permanent storage
+        if (favorites.includes(img.id)) {
+            favorites.pop(img.id);
+        } else {
+            favorites.push(img.id);
+        }
+        heart_icon.classList.toggle("is_fav",favorites.includes(img.id));
+    }
+
+    overlay.append(heart_icon);
 }
 
 function add_overlay(img, meme)
 {
-    // let id = img.id;
-    // console.log("id:",id);
-    // if (img.videoWidth == 0) {
-    //     setTimeout(() => {
-    //         add_overlay(img,meme);
-    //     }, 200);
-    // }
-
     let overlay = document.createElement("div");
     overlay.className = "overlay";
-    // overlay.addEventListener("click", (e)=>{
-    //     img.muted = !img.muted;
-    // });
 
     add_audio_buttons(overlay,img);
-    add_heart(overlay);
-
-
-    // add_audio_buttons(meme, img);
-    // add_heart(meme);
+    add_heart(overlay, img);
 
     meme.append(overlay);
 }
