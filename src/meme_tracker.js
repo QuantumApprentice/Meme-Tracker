@@ -18,8 +18,10 @@ let base_webm = null;
 
 function routing()
 {
+    get_last_used();
     window.addEventListener("hashchange",()=>{
         const current_path = window.location.hash.slice(2);
+        set_last_used(current_path);
         img_type = types.indexOf(current_path);
 
         if (img_type >= 0 && img_type < 3) {
@@ -34,6 +36,21 @@ function routing()
         }
         display_memes();
     });
+}
+
+function set_last_used(path)
+{
+    localStorage.setItem("last_used",path);
+}
+
+function get_last_used()
+{
+    let last = localStorage.getItem("last_used");
+    if (last == "gif") {
+        window.location.assign(`#/gif`);
+        let btn = document.getElementById("imgtype");
+        btn.textContent = "Webm";
+    }
 }
 
 async function load_meme_list()
@@ -263,6 +280,11 @@ function create_meme_mp4(basename, observer)
 
     return meme;
 }
+
+//TODO: store the width and height of the image
+//      and then add a style rule of aspectRatio = `${width} / ${height}`;
+//      width & height should be stored in Meme_Tracker_list.json
+
 
 // create_meme_webm() and the create_meme_gif()
 // both create a video/image element and a div element
@@ -522,7 +544,6 @@ function get_favorites()
         if (!Array.isArray(fav)) {
             favorites = [];
         }
-        return;
     }
 }
 
