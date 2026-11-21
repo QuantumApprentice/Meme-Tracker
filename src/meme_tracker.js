@@ -511,8 +511,19 @@ function set_favorites()
 function get_favorites()
 {
     let fav = localStorage.getItem("favorites");
-    favorites = JSON.parse(fav);
-    return fav;
+    if (fav == null) {
+        return;
+    }
+
+    try {
+        favorites = JSON.parse(fav);
+    } catch (error) {
+        console.log("ERROR: Loading favorites failed:",error);
+        if (!Array.isArray(fav)) {
+            favorites = [];
+        }
+        return;
+    }
 }
 
 routing();
