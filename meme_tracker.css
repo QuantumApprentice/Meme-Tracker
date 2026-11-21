@@ -4,6 +4,12 @@
 #base {
   display: flex;
   flex-wrap: wrap;
+  /* display: grid-lanes; */
+  /* grid-template-columns: auto; */
+  /* display: grid; */
+  /* grid-template-columns:  300px 1fr 1fr; */
+  /* grid-template-rows: auto; */
+  /* grid-auto-flow: column; */
   gap: 10px;
 }
 
@@ -49,10 +55,10 @@ video, img {
   fill:rebeccapurple;
 }
 .heart.is_fav svg {
-  fill:currentColor;
+  fill:white;
 }
 .meme {
-  /* outline: solid red; */
+  outline: solid red;
   position: relative;
   display: flex;
   flex-direction: column;

@@ -96,14 +96,19 @@ function lazy_loading()
 async function display_memes()
 {
     let memeList = await load_meme_list();
-    // console.log(memeList);
+    get_favorites();
 
     const current_path = window.location.hash.slice(2);
     img_type = types.indexOf(current_path);
+    let observer = lazy_loading();
 
-    if (new_base == null) {
-        let observer = lazy_loading();
+    // if current_path isn't in the types array (ie root path)
+    // then img_type ends up being -1 and it has to be set so the page can load
+    if (img_type < 0) {
+        img_type = 0;
+    }
 
+    if (img_type == 0 && base_webm == null) {
         base_webm = document.createElement("div");
         memeList.forEach((e)=>{
             let basename = e.filename;
@@ -117,6 +122,10 @@ async function display_memes()
             );
         });
 
+        new_base = base_webm;
+    }
+
+    if (img_type == 1 && base_gif == null) {
         base_gif  = document.createElement("div");
         memeList.forEach((e)=>{
             let basename = e.filename;
@@ -131,12 +140,13 @@ async function display_memes()
         });
 
         new_base = base_webm;
-    } else {
-        if (img_type == 0) {
-            new_base = base_webm;
-        } else {
-            new_base = base_gif;
-        }
+    }
+
+    if (img_type == 0 && new_base != base_webm) {
+        new_base = base_webm;
+    } else
+    if (img_type == 1 && new_base != base_gif) {
+        new_base = base_gif;
     }
 
     let base = document.getElementById("base");
@@ -148,13 +158,13 @@ function list_meme(basename, command, created, observer, img_type)
 {
     let meme;
     if (types[img_type] == "webm") {
-        meme = create_meme_webm(basename, observer);
+        meme = create_meme_webm(basename, command, observer);
     }
     if (types[img_type] == "gif") {
-        meme = create_meme_gif(basename, observer);
+        meme = create_meme_gif(basename, command, observer);
     }
     if (types[img_type] == "mp4") {
-        meme = create_meme_mp4(basename, observer);
+        meme = create_meme_mp4(basename, command, observer);
     }
     let div = document.createElement("div");
     div.className = "meme";
@@ -258,22 +268,20 @@ function create_meme_mp4(basename, observer)
 // both create a video/image element and a div element
 // assign the className and any mouse functions to the video/image
 // returns the div with the image appended
-function create_meme_webm(basename, observer)
+function create_meme_webm(basename, command, observer)
 {
-    let vid      = document.createElement("video");
-    vid.url      = `./memes/webm/${basename}.webm`;
-    vid.id       = basename;
+    let vid    = document.createElement("video");
+    vid.url    = `./memes/webm/${basename}.webm`;
+    vid.id     = command;
     observer.observe(vid);
-    vid.loop     = true;
-    vid.muted    = true;
-    vid.volume   = 0.5;
-    vid.favorite = favorites.includes(vid.id);
-    vid.play();
+    vid.loop   = true;
+    vid.muted  = true;
+    vid.volume = 0.5;
+    vid.fav    = favorites.includes(vid.id);
 
-    // mute/unmute on click
     // TODO: restart playback on click?
+    // mute/unmute on click
     vid.addEventListener("click", (e)=>{
-        // navigator.clipboard.writeText(`!${command}`);
         e.currentTarget.muted = !e.currentTarget.muted;
     });
 
@@ -287,14 +295,16 @@ function create_meme_webm(basename, observer)
 
     meme.className = 'underlay';
     meme.appendChild(vid);
-    add_overlay(vid, meme);
+    add_overlay_vid(vid, meme);
 
     return meme;
 }
-function create_meme_gif(basename, observer)
+function create_meme_gif(basename, command, observer)
 {
     let img = document.createElement("img");
     img.url = `./memes/gif/${basename}.gif`;
+    img.id  = command;
+    img.fav = favorites.includes(img.id);
     observer.observe(img);
     img.addEventListener("click", ()=>{
         // instead of copying the command when clicking a gif
@@ -305,6 +315,7 @@ function create_meme_gif(basename, observer)
     let meme = document.createElement("div");
     meme.className = 'meme';
     meme.appendChild(img);
+    add_overlay_img(img,meme);
 
     return meme;
 }
@@ -453,27 +464,56 @@ function add_heart(overlay, img)
         // storing favorites in an array just for start
         // need to switch to some more permanent storage
         if (favorites.includes(img.id)) {
-            favorites.pop(img.id);
+            let idx = favorites.indexOf(img.id);
+            if (idx >= 0) {
+                favorites.splice(idx, 1);
+            }
+            img.fav = false;
         } else {
             favorites.push(img.id);
+            img.fav = true;
         }
-        heart_icon.classList.toggle("is_fav",favorites.includes(img.id));
+        set_favorites();
+        heart_icon.classList.toggle("is_fav",img.fav);
     }
 
+    heart_icon.classList.toggle("is_fav",img.fav);
     overlay.append(heart_icon);
 }
 
-function add_overlay(img, meme)
+function add_overlay_img(img, meme)
 {
     let overlay = document.createElement("div");
     overlay.className = "overlay";
 
-    add_audio_buttons(overlay,img);
     add_heart(overlay, img);
 
     meme.append(overlay);
 }
 
+function add_overlay_vid(vid, meme)
+{
+    let overlay = document.createElement("div");
+    overlay.className = "overlay";
+
+    add_audio_buttons(overlay,vid);
+    add_heart(overlay, vid);
+
+    meme.append(overlay);
+}
+
+function set_favorites()
+{
+    let fav_string = JSON.stringify(favorites);
+    localStorage.setItem("favorites", fav_string);
+}
+
+function get_favorites()
+{
+    let fav = localStorage.getItem("favorites");
+    favorites = JSON.parse(fav);
+    return fav;
+}
 
 routing();
 display_memes();
